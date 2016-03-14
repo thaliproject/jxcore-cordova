@@ -101,7 +101,7 @@ endif
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
-NDK_TOOLCHAIN_VERSION := 4.8
+NDK_TOOLCHAIN_VERSION := 4.9
 LOCAL_CFLAGS := -std=gnu++11 
 APP_STL := gnustl_static
 LOCAL_MODULE    := jxcore
