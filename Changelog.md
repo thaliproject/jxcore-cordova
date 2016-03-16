@@ -1,3 +1,8 @@
+#### 0.1.2
+
+ - Update to latest JXCore (with PSK)
+ - Update for latest NDK toolchain - 4.9
+ 
 #### 0.1.1 
 
  - Update to latest JXcore
