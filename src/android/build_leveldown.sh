@@ -17,7 +17,7 @@ if [ $# -eq 1 ]
 then
   rm -rf jxcore-binaries/
   mkdir jxcore-binaries/
-  cp -R $1/ jxcore-binaries/
+  cp -R $1/* jxcore-binaries/
   rm jxcore-binaries/*_x64.a
 else
   LOG $RED_COLOR "You should provide the path for JXcore Android binaries"
