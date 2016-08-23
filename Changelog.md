@@ -1,3 +1,8 @@
+#### 0.1.4
+
+ - Update to latest JXcore (3.1.4)
+ - Fix build_leveldown.sh script on Linux.
+
 #### 0.1.2
 
  - Update to latest JXCore (with PSK)
