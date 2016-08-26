@@ -14,8 +14,8 @@ cd jxcore-cordova-tests
 
 #### Download and unpack jxcore-cordova plugin
 
+Get the io.jxcore.node.jx file you built and then issue the jx command:
 ```sh
-wget http://az836273.vo.msecnd.net/0.0.8/io.jxcore.node.jx
 jx io.jxcore.node.jx
 ```
 
