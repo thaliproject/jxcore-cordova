@@ -1,3 +1,7 @@
+#### 0.1.6
+
+ - Update to latest JXcore (3.1.6)
+
 #### 0.1.5
 
  - Update to latest JXcore (3.1.5)
