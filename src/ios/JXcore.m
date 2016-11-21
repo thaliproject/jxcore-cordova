@@ -215,8 +215,6 @@ void ConvertParams(JXValue *results, int argc, NSMutableArray *params) {
   }
 }
 
-static void callback(JXValue *results, int argc) { }
-
 static void callJXcoreNative(JXValue *results, int argc) {
   if (argc < 2 || !JX_IsString(results + 0) || !JX_IsString(results+(argc-1))) {
     NSLog(@"Unknown call received to callJXcoreNative. First and last parameters have to be string\n");
@@ -359,7 +357,7 @@ static float delay = 0;
         "  node_module.addGlobalPath(process.userPath);\n"
         "};\n%@", documentsDirectory, fileDir, fileContents_];
 
-  JX_Initialize([fileDir UTF8String], callback);
+  JX_InitializeOnce([fileDir UTF8String]);
   JX_InitializeNewEngine();
   JX_DefineExtension("callJXcoreNative", callJXcoreNative);
   JX_DefineExtension("defineEventCB", defineEventCB);
