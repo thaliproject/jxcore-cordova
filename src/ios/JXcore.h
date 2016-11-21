@@ -44,8 +44,6 @@ typedef void (*JXcoreNative)(NSArray *params, NSString *callbackId);
 + (void)Evaluate:(NSString *)script;
 
 + (void)addNativeBlock:(void(^)(NSArray *params, NSString *callbackId))code_block withName:(NSString*)name;
-
-+ (void)useSubThreading;
 @end
 
 @interface JXNull : NSObject

@@ -277,7 +277,6 @@ static void defineEventCB(JXValue *params, int argc) {
 
 @implementation JXcore
 
-static bool useThreading = false;
 static NSThread *jxcoreThread = nil;
 static NSMutableArray *operationQueue;
 static NSCondition *operationCheck;
@@ -285,11 +284,6 @@ static NSCondition *queueCheck;
 static NSMutableArray *scriptsQueue;
 static NSMutableArray *nativeCallsQueue;
 static float delay = 0;
-
-+ (void)useSubThreading {
-  assert(jxcoreThread == nil && "You should call this prior to starting JXcore engine");
-  useThreading = true;
-}
 
 + (void)startEngine:(NSString*)fileName withCallback:(JXcoreNative)jxCallback namedAs:(NSString*)name
 {
@@ -303,21 +297,17 @@ static float delay = 0;
     object:nil
   ];
   
-  if (useThreading) {
-    operationQueue = [[NSMutableArray alloc] init];
-    operationCheck = [[NSCondition alloc] init];
-    queueCheck = [[NSCondition alloc] init];
-    scriptsQueue = [[NSMutableArray alloc] init];
-    nativeCallsQueue = [[NSMutableArray alloc] init];
-    
-    [jxcoreThread start];
-    
-    [JXcore run:^(){
-      [JXcore initialize:fileName withCallback:jxCallback namedAs:name];
-    }];
-  } else {
+  operationQueue = [[NSMutableArray alloc] init];
+  operationCheck = [[NSCondition alloc] init];
+  queueCheck = [[NSCondition alloc] init];
+  scriptsQueue = [[NSMutableArray alloc] init];
+  nativeCallsQueue = [[NSMutableArray alloc] init];
+
+  [jxcoreThread start];
+
+  [JXcore run:^(){
     [JXcore initialize:fileName withCallback:jxCallback namedAs:name];
-  }
+  }];
 }
 
 + (void)initialize:(NSString*)fileName withCallback:(JXcoreNative)jxCallback  namedAs:(NSString*)name {
@@ -377,19 +367,6 @@ static float delay = 0;
   JX_StartEngine();
 
   JX_LoopOnce();
-  [JXcore jxcoreLoop:[NSNumber numberWithInt:0]];
-}
-
-+ (void)jxcoreLoop:(NSNumber *)n {
-  int result = JX_LoopOnce();
-  float total_delay = delay + (result == 0 ? 0.05 : 0.01);
-  
-  if (useThreading)
-    return;
-  else
-    [JXcore performSelector:@selector(jxcoreLoop:)
-               withObject:[NSNumber numberWithInt:0]
-               afterDelay:total_delay];
 }
 
 + (void)threadMain
@@ -649,7 +626,7 @@ static float delay = 0;
 }
 
 + (void) callEventCallback:(NSString*)eventName_ withParams:(NSArray*)params_ isJSON:(BOOL) is_json {
-  if (useThreading && [NSThread currentThread] != jxcoreThread) {
+  if ([NSThread currentThread] != jxcoreThread) {
     NativeCall *nc = [[NativeCall alloc] init];
     [nc setName:eventName_ withParams:params_ isJSON:is_json];
     
@@ -692,28 +669,21 @@ static float delay = 0;
 }
 
 + (void)Evaluate:(NSString *)script_ {
-  if (useThreading) {
-    [JXcore run:^{
-      [queueCheck lock];
-      
-      assert ([scriptsQueue count] != 0 && "What happened to script?");
-   
-      NSString *script = [NSString stringWithString:[scriptsQueue objectAtIndex:0]];
-      [scriptsQueue removeObjectAtIndex:0];
-      
-      [queueCheck unlock];
-      
-      JXValue result;
-      const char* str_script = [script UTF8String];
-      JX_Evaluate(str_script, "eval", &result);
-      JX_Free(&result);
-    } withEvalString:script_];
-  } else {
+  [JXcore run:^{
+    [queueCheck lock];
+
+    assert ([scriptsQueue count] != 0 && "What happened to script?");
+
+    NSString *script = [NSString stringWithString:[scriptsQueue objectAtIndex:0]];
+    [scriptsQueue removeObjectAtIndex:0];
+
+    [queueCheck unlock];
+
     JXValue result;
-    const char* str_script = [script_ UTF8String];
+    const char* str_script = [script UTF8String];
     JX_Evaluate(str_script, "eval", &result);
     JX_Free(&result);
-  }
+  } withEvalString:script_];
 }
 
 @end
