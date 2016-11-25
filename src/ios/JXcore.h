@@ -35,6 +35,8 @@ typedef void (*JXcoreNative)(NSArray *params, NSString *callbackId);
 {}
 + (void)startEngine:(NSString*)fileName withCallback:(JXcoreNative)jxCallback namedAs:(NSString*)name;
 
++ (void)startChildEngine;
+
 + (void)addNativeMethod:(JXcoreNative)nativeMethod withName:(NSString*)name;
 
 + (void)callEventCallback:(NSString*)eventName withParams:(NSArray*)params;

@@ -520,9 +520,9 @@ if (isAndroid) {
   extendFS();
 
   // register below definitions for possible future sub threads
-  jxcore.tasks.register(process.setPaths);
-  jxcore.tasks.register(process.registerAssets);
-  jxcore.tasks.register(extendFS);
+  //jxcore.tasks.register(process.setPaths);
+  //jxcore.tasks.register(process.registerAssets);
+  //jxcore.tasks.register(extendFS);
 
   JXMobile('JXcore_Device_OnResume')
       .registerToNative(function() { process.emit('resume'); });
@@ -533,7 +533,7 @@ if (isAndroid) {
   JXMobile('JXcore_Device_OnConnectionStatusChanged').
     registerToNative(function(status) { process.emit('connectionStatusChanged', status); });
 } else {
-  jxcore.tasks.register(process.setPaths);
+  //jxcore.tasks.register(process.setPaths);
 }
 
 process.on('uncaughtException', function(e) {
