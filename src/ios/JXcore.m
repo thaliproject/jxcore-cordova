@@ -275,61 +275,61 @@ static void defineEventCB(JXValue *params, int argc) {
 
 @implementation JXcore
 
-static NSThread *jxcoreThread = nil;
+static bool mainEngineInitialized = false;
+// Restart-able Instance
+static NSThread *RIThread = nil;
 static NSMutableArray *operationQueue;
 static NSCondition *operationCheck;
 static NSCondition *queueCheck;
 static NSMutableArray *scriptsQueue;
 static NSMutableArray *nativeCallsQueue;
 static float delay = 0;
+static NSString *filePath;
+static NSString *fileDir;
 
 + (void)startEngine:(NSString*)fileName withCallback:(JXcoreNative)jxCallback namedAs:(NSString*)name
 {
-  assert(jxcoreThread == nil && "You can start JXcore engine only once");
-  
-  natives = [[NSMutableDictionary alloc] init];
-  
-  jxcoreThread = [[NSThread alloc]
-    initWithTarget:self
-    selector:@selector(threadMain)
-    object:nil
-  ];
-  
-  operationQueue = [[NSMutableArray alloc] init];
-  operationCheck = [[NSCondition alloc] init];
-  queueCheck = [[NSCondition alloc] init];
-  scriptsQueue = [[NSMutableArray alloc] init];
+  NSLog(@"JXcoreCordova: main engine start.");
+
+  assert(mainEngineInitialized == false && "You can start JXcore main engine only once.");
+  mainEngineInitialized = true;
+
+  natives          = [[NSMutableDictionary alloc] init];
+  operationQueue   = [[NSMutableArray alloc] init];
+  operationCheck   = [[NSCondition alloc] init];
+  queueCheck       = [[NSCondition alloc] init];
+  scriptsQueue     = [[NSMutableArray alloc] init];
   nativeCallsQueue = [[NSMutableArray alloc] init];
 
-  [jxcoreThread start];
-
-  [JXcore run:^(){
-    [JXcore initialize:fileName withCallback:jxCallback namedAs:name];
-  }];
-}
-
-+ (void)initialize:(NSString*)fileName withCallback:(JXcoreNative)jxCallback  namedAs:(NSString*)name {
-  NSLog(@"JXcore instance initializing");
-  NSString *sandboxPath = NSHomeDirectory();
-
-  NSString *filePath =
-      [[NSBundle mainBundle] pathForResource:fileName ofType:@"js"];
-
   [JXcore addNativeMethod:jxCallback withName:name];
-  
-  NSError *error;
-  NSString *fileContents_ =
-      [NSString stringWithContentsOfFile:filePath
-                                encoding:NSUTF8StringEncoding
-                                   error:&error];
-  
-  NSString *fileDir = sandboxPath;
-  
+
+  NSString *sandboxPath = NSHomeDirectory();
+  filePath = [[NSBundle mainBundle] pathForResource:fileName ofType:@"js"];
+  fileDir = sandboxPath;
   NSUInteger location = [filePath rangeOfString:[NSString stringWithFormat:@"/%@.js", fileName]].location;
   if (location > 0) {
     fileDir = [NSString stringWithFormat:@"%@/www/jxcore/",[filePath substringToIndex:location]];
   }
-  
+
+  NSString *fileContents = @"console.log('Log from main engine.');";
+
+  JX_InitializeOnce([fileDir UTF8String]);
+  JX_InitializeNewEngine();
+  JX_DefineMainFile([fileContents UTF8String]);
+  JX_StartEngine();
+
+  // Create the restart-able instance thread to run the JXcore child engine
+  JXcoreProxy_CreateRIThread();
+}
+
++ (void)startRIChildEngine
+{
+  RIThread = [NSThread currentThread];
+
+  NSError *error;
+  NSString *fileContentsPath = [NSString stringWithContentsOfFile:filePath
+                                encoding:NSUTF8StringEncoding
+                                error:&error];
   if (error) {
     NSLog(@"Error reading jxcore_cordova.js file: %@",
           error.localizedDescription);
@@ -355,37 +355,31 @@ static float delay = 0;
         "  };\n"
         "  node_module.addGlobalPath(process.cwd());\n"
         "  node_module.addGlobalPath(process.userPath);\n"
-        "};\n%@", documentsDirectory, fileDir, fileContents_];
+        "};\n%@", documentsDirectory, fileDir, fileContentsPath];
 
-  JX_InitializeOnce([fileDir UTF8String]);
   JX_InitializeNewEngine();
   JX_DefineExtension("callJXcoreNative", callJXcoreNative);
   JX_DefineExtension("defineEventCB", defineEventCB);
   JX_DefineMainFile([fileContents UTF8String]);
   JX_StartEngine();
 
-  JX_LoopOnce();
-}
-
-+ (void)threadMain
-{
   void (^code_block)();
-  NSThread *currentThread;
 
-  currentThread = [NSThread currentThread];
   int result = 1;
+  NSTimeInterval waitInterval = 0.0;
   
   while (true) {
     [operationCheck lock];
     {
-      while ([operationQueue count] == 0 && ![currentThread isCancelled]) {
-        NSTimeInterval waitInterval = delay + (result == 0 ? 0.05 : 0.01);
+      while ([operationQueue count] == 0 && ![RIThread isCancelled]) {
+        waitInterval = delay + (result == 0 ? 0.05 : 0.01);
         [operationCheck waitUntilDate:[NSDate dateWithTimeIntervalSinceNow:waitInterval]];
         
         result = JX_LoopOnce();
       }
 
-      if ([currentThread isCancelled]) {
+      if ([RIThread isCancelled]) {
+        JX_StopEngine();
         [operationCheck unlock];
         return;
       }
@@ -446,7 +440,7 @@ static float delay = 0;
 {
   [operationCheck lock];
   {
-    [jxcoreThread cancel];
+    [RIThread cancel];
     [operationCheck signal];
   }
   [operationCheck unlock];
@@ -624,7 +618,7 @@ static float delay = 0;
 }
 
 + (void) callEventCallback:(NSString*)eventName_ withParams:(NSArray*)params_ isJSON:(BOOL) is_json {
-  if ([NSThread currentThread] != jxcoreThread) {
+  if ([NSThread currentThread] != RIThread) {
     NativeCall *nc = [[NativeCall alloc] init];
     [nc setName:eventName_ withParams:params_ isJSON:is_json];
     

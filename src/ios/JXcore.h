@@ -35,6 +35,9 @@ typedef void (*JXcoreNative)(NSArray *params, NSString *callbackId);
 {}
 + (void)startEngine:(NSString*)fileName withCallback:(JXcoreNative)jxCallback namedAs:(NSString*)name;
 
+// Restart-able Instance child engine
++ (void)startRIChildEngine;
+
 + (void)addNativeMethod:(JXcoreNative)nativeMethod withName:(NSString*)name;
 
 + (void)callEventCallback:(NSString*)eventName withParams:(NSArray*)params;
