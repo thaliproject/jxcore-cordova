@@ -24,12 +24,9 @@
  THE SOFTWARE.
  ****************************************************************************/
 #include "JniHelper.h"
-#include <android/log.h>
+#include "console_log.h"
 #include <string.h>
 #include <pthread.h>
-
-#define ALOG_TAG "jxcore_app_log"
-#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, ALOG_TAG, __VA_ARGS__)
 
 static pthread_key_t g_key;
 
@@ -47,7 +44,7 @@ jclass _getClassID(const char *className) {
       jxcore::JniHelper::loadclassMethod_methodID, _jstrClassName);
 
   if (NULL == _clazz) {
-    LOGD("Classloader failed to find class of %s", className);
+    LogD("Classloader failed to find class of %s", className);
   }
 
   env->DeleteLocalRef(_jstrClassName);
@@ -62,13 +59,13 @@ jobject JniHelper::classloader = NULL;
 
 JavaVM *JniHelper::getJavaVM() {
   pthread_t thisthread = pthread_self();
-  LOGD("JniHelper::getJavaVM(), pthread_self() = %ld", thisthread);
+  LogD("JniHelper::getJavaVM(), pthread_self() = %ld", thisthread);
   return _psJavaVM;
 }
 
 void JniHelper::setJavaVM(JavaVM *javaVM) {
   pthread_t thisthread = pthread_self();
-  LOGD("JniHelper::setJavaVM(%p), pthread_self() = %ld", javaVM, thisthread);
+  LogD("JniHelper::setJavaVM(%p), pthread_self() = %ld", javaVM, thisthread);
   _psJavaVM = javaVM;
 
   pthread_key_create(&g_key, NULL);
@@ -88,7 +85,7 @@ JNIEnv *JniHelper::cacheEnv(JavaVM *jvm) {
     case JNI_EDETACHED:
       // Thread not attached
       if (jvm->AttachCurrentThread(&_env, NULL) < 0) {
-        LOGD("Failed to get the environment using AttachCurrentThread()");
+        LogD("Failed to get the environment using AttachCurrentThread()");
 
         return NULL;
       } else {
@@ -99,9 +96,9 @@ JNIEnv *JniHelper::cacheEnv(JavaVM *jvm) {
 
     case JNI_EVERSION:
       // Cannot recover from this error
-      LOGD("JNI interface version 1.4 not supported");
+      LogD("JNI interface version 1.4 not supported");
     default:
-      LOGD("Failed to get the environment using GetEnv()");
+      LogD("Failed to get the environment using GetEnv()");
       return NULL;
   }
 }
@@ -150,19 +147,19 @@ bool JniHelper::getStaticMethodInfo(JniMethodInfo &methodinfo,
 
   JNIEnv *pEnv = JniHelper::getEnv();
   if (!pEnv) {
-    LOGD("Failed to get JNIEnv");
+    LogD("Failed to get JNIEnv");
     return false;
   }
 
   jclass classID = _getClassID(className);
   if (!classID) {
-    LOGD("Failed to find class %s", className);
+    LogD("Failed to find class %s", className);
     return false;
   }
 
   jmethodID methodID = pEnv->GetStaticMethodID(classID, methodName, paramCode);
   if (!methodID) {
-    LOGD("Failed to find static method id of %s", methodName);
+    LogD("Failed to find static method id of %s", methodName);
     return false;
   }
 
@@ -187,13 +184,13 @@ bool JniHelper::getMethodInfo_DefaultClassLoader(JniMethodInfo &methodinfo,
 
   jclass classID = pEnv->FindClass(className);
   if (!classID) {
-    LOGD("Failed to find class %s", className);
+    LogD("Failed to find class %s", className);
     return false;
   }
 
   jmethodID methodID = pEnv->GetMethodID(classID, methodName, paramCode);
   if (!methodID) {
-    LOGD("Failed to find method id of %s", methodName);
+    LogD("Failed to find method id of %s", methodName);
     return false;
   }
 
@@ -217,14 +214,14 @@ bool JniHelper::getMethodInfo(JniMethodInfo &methodinfo, const char *className,
 
   jclass classID = _getClassID(className);
   if (!classID) {
-    LOGD("Failed to find class %s", className);
+    LogD("Failed to find class %s", className);
     pEnv->ExceptionClear();
     return false;
   }
 
   jmethodID methodID = pEnv->GetMethodID(classID, methodName, paramCode);
   if (!methodID) {
-    LOGD("Failed to find method id of %s", methodName);
+    LogD("Failed to find method id of %s", methodName);
     pEnv->ExceptionClear();
     return false;
   }

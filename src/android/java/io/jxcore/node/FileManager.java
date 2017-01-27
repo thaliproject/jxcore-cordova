@@ -14,6 +14,8 @@ import android.util.Log;
 @SuppressLint("DefaultLocale")
 public class FileManager {
 
+  private static final String TAG = ConnectionHelper.class.getName();
+
   public static String readFile(String location) {
     return readFile(location, "UTF-8");
   }
@@ -33,7 +35,7 @@ public class FileManager {
 
       br.close();
     } catch (IOException e) {
-      Log.w("jxcore-FileManager", "readfile failed");
+      Log.w(TAG, "readfile failed");
       e.printStackTrace();
       return null;
     }
@@ -49,7 +51,7 @@ public class FileManager {
       size = st.available();
       st.close();
     } catch (IOException e) {
-      Log.w("jxcore-FileManager", "aproxFileSize failed");
+      Log.w(TAG, "aproxFileSize failed");
       e.printStackTrace();
       return 0;
     }

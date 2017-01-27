@@ -1,18 +1,10 @@
 // License information is available from LICENSE file
 
-#ifndef JXCORE_H
-#define JXCORE_H
+#ifndef __JXCORE_H__
+#define __JXCORE_H__
 #include "JniHelper.h"
 #include "../jxcore-binaries/jx.h"
-#include <android/log.h>
-
-#define ALOG_TAG "jxcore-app-log"
-#define log_console(...) \
-  __android_log_print(ANDROID_LOG_DEBUG, ALOG_TAG, __VA_ARGS__)
-#define warn_console(...) \
-  __android_log_print(ANDROID_LOG_WARN, ALOG_TAG, __VA_ARGS__)
-#define error_console(...) \
-  __android_log_print(ANDROID_LOG_ERROR, ALOG_TAG, __VA_ARGS__)
+#include "console_log.h"
 
 namespace jxcore {
 
@@ -52,4 +44,4 @@ int Initialize(JavaVM *vm) {
 }
 }
 
-#endif
+#endif  // __JXCORE_H__

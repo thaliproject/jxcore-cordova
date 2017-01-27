@@ -55,7 +55,7 @@ public class jxcore extends CordovaPlugin {
 
   public native long callCBArray(String event_name, Object[] arr, int size);
 
-  public static String LOGTAG = "JX-Cordova";
+  private static final String TAG = ConnectionHelper.class.getName();
   public static Activity activity = null;
   public static jxcore addon;
 
@@ -124,7 +124,7 @@ public class jxcore extends CordovaPlugin {
   public static void javaCall(ArrayList<Object> params) {
     if (params.size() < 2 || params.get(0).getClass() != String.class
         || params.get(params.size() - 1).getClass() != String.class) {
-      Log.e(LOGTAG, "JavaCall recevied an unknown call");
+      Log.e(TAG, "JavaCall recevied an unknown call");
       return;
     }
 
@@ -132,7 +132,7 @@ public class jxcore extends CordovaPlugin {
     String callId = params.remove(params.size() - 1).toString();
 
     if (!java_callbacks.containsKey(receiver)) {
-      Log.e(LOGTAG, "JavaCall recevied a call for unknown method " + receiver);
+      Log.e(TAG, "JavaCall recevied a call for unknown method " + receiver);
       return;
     }
 
@@ -149,7 +149,7 @@ public class jxcore extends CordovaPlugin {
 
     // STRING 4, OBJECT 5, ERROR 9 - See jx_types
     if (tp == 4 || tp == 5 || tp == 9) {
-      Log.e(LOGTAG, "jxcore.CallJSMethod :" + addon.getString(ret));
+      Log.e(TAG, "jxcore.CallJSMethod :" + addon.getString(ret));
     }
   }
 
@@ -159,13 +159,13 @@ public class jxcore extends CordovaPlugin {
 
     // STRING 4, OBJECT 5, ERROR 9 - See jx_types
     if (tp == 4 || tp == 5 || tp == 9) {
-      Log.e(LOGTAG, "jxcore.CallJSMethod :" + addon.getString(ret));
+      Log.e(TAG, "jxcore.CallJSMethod :" + addon.getString(ret));
     }
   }
 
   public static boolean CallJSMethod(String id, Object[] args) {
     if (jxcore.coreThread == null) {
-      Log.e(LOGTAG, "JXcore wasn't initialized yet");
+      Log.e(TAG, "JXcore wasn't initialized yet");
       return false;
     }
 
@@ -185,7 +185,7 @@ public class jxcore extends CordovaPlugin {
 
   public static boolean CallJSMethod(String id, String json) {
     if (jxcore.coreThread == null) {
-      Log.e(LOGTAG, "JXcore wasn't initialized yet");
+      Log.e(TAG, "JXcore wasn't initialized yet");
       return false;
     }
 
@@ -311,10 +311,11 @@ public class jxcore extends CordovaPlugin {
   @Override
   protected void pluginInitialize() {
     final boolean new_instance = activity == null;
-    activity = cordova.getActivity();
-    if (!new_instance) {
-      Log.d(LOGTAG, "jxcore cordova android initializing");
+    if (new_instance == true) {
+      Log.d(TAG, "Initializing plugin");
     }
+
+    activity = cordova.getActivity();
     addon = this;
 
     callbacks = new HashMap<String, CallbackContext>();
@@ -324,7 +325,7 @@ public class jxcore extends CordovaPlugin {
       @Override
       public void Receiver(ArrayList<Object> params, String callbackId) {
         if (params.size() < 3 || !params.get(2).getClass().equals(String.class)) {
-          Log.e(LOGTAG, "Unkown _callback_ received");
+          Log.e(TAG, "Unknown _callback_ received");
           return;
         }
         jxcore.jx_callback(params.get(0), params.get(1), params.get(2)

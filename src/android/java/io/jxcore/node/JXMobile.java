@@ -16,6 +16,8 @@ import android.util.Log;
 
 public class JXMobile {
 
+  private static final String TAG = ConnectionHelper.class.getName();
+
   public static String getStatusString(NetworkInfo[] netInfo, Boolean asJSON) {
     String info = "NotConnected";
     for (NetworkInfo ni : netInfo) {
@@ -43,7 +45,7 @@ public class JXMobile {
         String message = (String) params.get(0);
         String stack = (String) params.get(1);
 
-        Log.e("jxcore", "Error!: " + message + "\nStack: " + stack);
+        Log.e(TAG, "Error: " + message + "\nStack: " + stack);
       }
     });
 

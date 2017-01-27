@@ -74,7 +74,7 @@ void ConvertResult(JXValue *result, std::string &to_result) {
 
 static void callback(JXValue *results, int argc) {
   if (argc != 3) {
-    error_console(
+    LogE(
         "wrong callback received. expected number of parameters was 3. "
         "received %d",
         argc);
@@ -82,7 +82,7 @@ static void callback(JXValue *results, int argc) {
   }
 
   if (!JX_IsString(results + 2)) {
-    error_console(
+    LogE(
         "JXcore-Cordova: Unexpected callback received. Third parameter must "
         "be a String");
     return;
@@ -244,7 +244,7 @@ static void assetReadSync(JXValue *results, int argc) {
 
 static void defineEventCB(JXValue *results, int argc) {
   if (!JX_IsFunction(results + 1)) {
-    error_console("defineEventCB expects a function");
+    LogE("defineEventCB expects a function");
     return;
   }
 
@@ -266,7 +266,7 @@ Java_io_jxcore_node_jxcore_callCBString(JNIEnv *env, jobject thiz,
                                         jstring ev_name, jstring param,
                                         jint json) {
   if (eventCB.type_ == 0) {
-    error_console("event callback is not ready yet.");
+    LogE("event callback is not ready yet.");
     return 0;
   }
 
@@ -301,7 +301,7 @@ Java_io_jxcore_node_jxcore_callCBString(JNIEnv *env, jobject thiz,
     else
       ret_val = -1;
   } else {
-    error_console("couldn't create JXValue Object");
+    LogE("couldn't create JXValue Object");
   }
 
   env->ReleaseStringUTFChars(ev_name, str_ev);
@@ -315,7 +315,7 @@ Java_io_jxcore_node_jxcore_callCBArray(JNIEnv *env, jobject thiz,
                                        jstring ev_name, jobjectArray params,
                                        jint size) {
   if (eventCB.type_ == 0) {
-    error_console("event callback is not ready yet.");
+    LogE("event callback is not ready yet.");
     return 0;
   }
 
@@ -390,7 +390,7 @@ Java_io_jxcore_node_jxcore_callCBArray(JNIEnv *env, jobject thiz,
     else
       ret_val = -1;
   } else {
-    error_console("couldn't create JXValue Object");
+    LogE("couldn't create JXValue Object");
   }
 
   env->ReleaseStringUTFChars(ev_name, str_ev);
