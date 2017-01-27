@@ -46,3 +46,5 @@ io.jxcore.node.jx
 bin/
 
 src/android/libs/
+
+.vscode
