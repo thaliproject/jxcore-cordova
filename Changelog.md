@@ -1,3 +1,7 @@
+#### 0.1.11
+
+- iOS: libuv's loop invoked at a higher frequency.
+
 #### 0.1.10
 
  - Update to latest JXcore (3.1.10)
