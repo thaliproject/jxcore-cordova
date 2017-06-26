@@ -284,7 +284,6 @@ static NSCondition *operationCheck;
 static NSCondition *queueCheck;
 static NSMutableArray *scriptsQueue;
 static NSMutableArray *nativeCallsQueue;
-static float delay = 0;
 
 + (void)useSubThreading {
   assert(jxcoreThread == nil && "You should call this prior to starting JXcore engine");
@@ -302,7 +301,7 @@ static float delay = 0;
     selector:@selector(threadMain)
     object:nil
   ];
-  
+
   if (useThreading) {
     operationQueue = [[NSMutableArray alloc] init];
     operationCheck = [[NSCondition alloc] init];
@@ -376,20 +375,17 @@ static float delay = 0;
   JX_DefineMainFile([fileContents UTF8String]);
   JX_StartEngine();
 
-  JX_LoopOnce();
-  [JXcore jxcoreLoop:[NSNumber numberWithInt:0]];
+  if (useThreading == false) {
+    [JXcore jxcoreLoop:[NSNumber numberWithInt:0]];
+  }
 }
 
 + (void)jxcoreLoop:(NSNumber *)n {
   int result = JX_LoopOnce();
-  float total_delay = delay + (result == 0 ? 0.05 : 0.01);
-  
-  if (useThreading)
-    return;
-  else
-    [JXcore performSelector:@selector(jxcoreLoop:)
-               withObject:[NSNumber numberWithInt:0]
-               afterDelay:total_delay];
+  float delay = (result == 0 ? 0.02 : 0.001);
+  [JXcore performSelector:@selector(jxcoreLoop:)
+          withObject:[NSNumber numberWithInt:0]
+          afterDelay:delay];
 }
 
 + (void)threadMain
@@ -404,7 +400,7 @@ static float delay = 0;
     [operationCheck lock];
     {
       while ([operationQueue count] == 0 && ![currentThread isCancelled]) {
-        NSTimeInterval waitInterval = delay + (result == 0 ? 0.05 : 0.01);
+        NSTimeInterval waitInterval = (result == 0 ? 0.02 : 0.001);
         [operationCheck waitUntilDate:[NSDate dateWithTimeIntervalSinceNow:waitInterval]];
         
         result = JX_LoopOnce();
