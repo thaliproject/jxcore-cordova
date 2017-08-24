@@ -1,3 +1,11 @@
+#### 0.1.14
+
+ - Update to latest JXcore (3.1.14)
+
+#### 0.1.13
+
+ - Skipped
+
 #### 0.1.12
 
  - Update to latest JXcore (3.1.12)
